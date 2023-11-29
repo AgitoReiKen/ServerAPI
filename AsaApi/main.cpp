@@ -8,6 +8,13 @@
 #include <fstream>
 #include <json.hpp>
 
+#ifdef _DEBUG
+#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "libcrypto.lib")
+#pragma comment(lib, "crypt32.lib")
+#pragma comment(lib, "iphlpapi.lib")
+#endif
+
 DWORD GetParentProcessId()
 {
 	const DWORD InvalidParentProcessId = 0;

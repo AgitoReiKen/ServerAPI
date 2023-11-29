@@ -34,7 +34,7 @@
 #include "API/UE/Containers/StringConv.h"
 #include "Logger/Logger.h"
 #include "fmt/format.h"
-
+#include "fmt/xchar.h"
 struct FStringFormatArg;
 template<typename InKeyType,typename InValueType,typename SetAllocator ,typename KeyFuncs > class TMap;
 
@@ -96,12 +96,18 @@ public:
 	template <typename T, typename... Args>
 	static FString Format(const T* format, Args&&... args)
 	{
-		if constexpr (!TIsCharType<T>::Value)
-			static_assert(TIsCharType<T>::Value, "format must be a char or wchar_t");
-
-		auto formatted_msg = fmt::format(format, std::forward<Args>(args)...);
-
-		return FString(formatted_msg.c_str());
+		if constexpr (std::is_same<T, wchar_t>::value)
+		{
+			auto formatted_msg = fmt::vformat(fmt::v10::wstring_view(format), fmt::make_format_args<fmt::wformat_context>(args...));
+			return FString(formatted_msg.c_str());
+		}
+		else if constexpr (std::is_same<T, char>::value)
+		{
+			auto formatted_msg = fmt::vformat(format, fmt::make_format_args(args...));
+			return FString(formatted_msg.c_str());
+		}
+		
+		static_assert(TIsCharType<T>::Value, "format must be a char or wchar_t");
 	}
 private:
 	/** Array holding the character data */
